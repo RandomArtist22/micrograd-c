@@ -1,19 +1,29 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+// Computational graph node structure
 typedef struct Value {
   double data;
   double grad;
   void (*backward)(struct Value *);
   struct Value **prev;
-  char op[4];
+  size_t prev_count;
+  char op[8];
+  int visited;
 } Value;
 
-Value *create_value(double data);
-Value *val_add(Value *a, Value *b);
-Value *val_mul(Value *a, Value *b);
-Value *val_tanh(Value *a);
-void backward(Value *root);
-void free_value(Value *v);
+// Function Prototypes for the engine
+Value* create_value(double data);
+Value* val_add(Value* a, Value* b);
+Value* val_mul(Value* a, Value* b);
+Value* val_pow(Value* a, double exponent);
+Value* val_relu(Value* a);
+Value* val_neg(Value* a);
+Value* val_sub(Value* a, Value* b);
+Value* val_div(Value* a, Value* b);
+Value* val_tanh(Value* a);
+void backward(Value* root);
+void free_graph(Value* root);
+
 
 #endif // !ENGINE_H
