@@ -1,6 +1,8 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include <stddef.h>
+
 // Computational graph node structure
 typedef struct Value {
   double data;
@@ -13,7 +15,7 @@ typedef struct Value {
 } Value;
 
 // Function Prototypes for the engine
-Value* create_value(double data);
+Value* create_value(double data, const char* op);
 Value* val_add(Value* a, Value* b);
 Value* val_mul(Value* a, Value* b);
 Value* val_pow(Value* a, double exponent);
