@@ -39,6 +39,13 @@ static void backward_relu(Value* out) {
     out->prev[0]->grad += (out->data > 0.0 ? 1.0 : 0.0) * out->grad;
 }
 
+static void backward_pow(Value *out) {
+    Value* base = out->prev[0];
+    double n = out->prev[1]->data;
+
+    base->grad += (n * pow(base->data, n - 1.0)) * out->grad;
+}
+
 static void backward_tanh(Value* out) {
     out->prev[0]->grad += (1 - out->data * out->data) * out->grad;
 }
@@ -83,10 +90,14 @@ Value* val_tanh(Value* a) {
 }
 
 Value* val_pow(Value* a, double exponent) {
+    Value* exp_node = create_value(exponent, "const");
+
     Value* out = create_value(pow(a->data, exponent), "ReLU");
     out->prev = (Value**)malloc(sizeof(Value*));
     out->prev_count = 1;
     out->prev[0] = a;
+    out->prev[1] = exp_node;
+    out->backward = backward_pow;
     return out;
 }
 
