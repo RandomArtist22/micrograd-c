@@ -18,6 +18,7 @@ inc = include_directories('include')
 sources = [
   'src/main.c',
   'src/engine.c',
+  'src/nn.c',
 ]
 
 exe = executable(
