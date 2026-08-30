@@ -15,8 +15,12 @@ Value* create_value(double data, const char* op) {
     v->prev = NULL;
     v->prev_count = 0;
     v->visited = 0;
-    strncpy(v->op, op, sizeof(v->op) - 1);
-    v->op[sizeof(v->op) - 1] = '\0';
+    if (op != NULL) {
+        strncpy(v->op, op, sizeof(v->op) - 1);
+        v->op[sizeof(v->op) - 1] = '\0';
+    } else {
+        v->op[0] = '\0';
+    }
     return v; 
 }
 
@@ -128,7 +132,7 @@ void backward(Value* root) {
 
 // Free Memory of Graph
 void free_graph(Value* root) {
-        Value* topo[MAX_NODES];
+    Value* topo[MAX_NODES];
     size_t topo_size = 0;
 
     build_topo(root, topo, &topo_size);
