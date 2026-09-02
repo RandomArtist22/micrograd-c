@@ -92,9 +92,9 @@ Value* val_tanh(Value* a) {
 Value* val_pow(Value* a, double exponent) {
     Value* exp_node = create_value(exponent, "const");
 
-    Value* out = create_value(pow(a->data, exponent), "ReLU");
-    out->prev = (Value**)malloc(sizeof(Value*));
-    out->prev_count = 1;
+    Value* out = create_value(pow(a->data, exponent), "power");
+    out->prev = (Value**)malloc(sizeof(Value*) * 2);
+    out->prev_count = 2;
     out->prev[0] = a;
     out->prev[1] = exp_node;
     out->backward = backward_pow;
