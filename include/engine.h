@@ -12,6 +12,7 @@ typedef struct Value {
   size_t prev_count;
   char op[8];
   int visited;
+  int is_param;
 } Value;
 
 // Function Prototypes for the engine

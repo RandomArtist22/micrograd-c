@@ -15,6 +15,7 @@ Value* create_value(double data, const char* op) {
     v->prev = NULL;
     v->prev_count = 0;
     v->visited = 0;
+    v->is_param = 0;
     if (op != NULL) {
         strncpy(v->op, op, sizeof(v->op) - 1);
         v->op[sizeof(v->op) - 1] = '\0';
@@ -138,6 +139,7 @@ void backward(Value* root) {
         if (topo[i]->backward) {
             topo[i]->backward(topo[i]);
         }
+        topo[i]->visited = 0;
     }
 }
 
@@ -149,8 +151,11 @@ void free_graph(Value* root) {
     build_topo(root, topo, &topo_size);
 
     for(int i = (int)topo_size - 1; i >= 0; i--) {
-        if (topo[i]->prev) free(topo[i]->prev);
-        free(topo[i]); 
+        if (!topo[i]->is_param) {
+            if (topo[i]->prev) free(topo[i]->prev);
+            free(topo[i]); 
+        }
+        else topo[i]->visited = 0;
     } 
 }
 

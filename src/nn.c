@@ -16,7 +16,9 @@ Neuron* create_neuron(size_t nin, bool nonlin) {
     n->w = (Value**)malloc(sizeof(Value*) * nin);
     for (size_t i=0; i < nin; i++) {
         n->w[i] = create_value(rand_uniform(), "w");
+        n->w[i]->is_param = 1;
     }
+    n->b->is_param = 1;
     return n;
 }
 
@@ -113,7 +115,11 @@ void free_mlp(MLP* mlp) {
     if (!mlp) return;
     for (size_t i = 0; i < mlp->nlayers; i++) {
         for (size_t j = 0; j < mlp->layers[i].nout; j++) {
+            for (size_t k = 0; k < mlp->layers[i].neurons[j].nin; k++) {
+                free(mlp->layers[i].neurons[j].w[k]);
+            }
             free(mlp->layers[i].neurons[j].w);
+            free(mlp->layers[i].neurons[j].b);
         }
         free(mlp->layers[i].neurons);
     }

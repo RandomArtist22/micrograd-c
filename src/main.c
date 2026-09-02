@@ -51,8 +51,9 @@ int main(void) {
         for (size_t p = 0; p < num_params; p++) {
             params[p]->data -= learning_rate * params[p]->grad;
         }
-
+        
         printf("Epoch %3d | Loss: %f\n", epoch, total_loss->data);
+        free_graph(total_loss);
     }
 
     free(params);
