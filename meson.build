@@ -19,6 +19,7 @@ sources = [
   'src/main.c',
   'src/engine.c',
   'src/nn.c',
+  'src/infer.c',
 ]
 
 exe = executable(
