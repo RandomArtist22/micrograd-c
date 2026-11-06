@@ -23,7 +23,7 @@ def forward(coefs, intercepts, x):
 
 
 # Test-data generated at random for simple classification
-X, y = make_classification(n_samples=10000, n_features=10, random_state=40)
+X, y = make_classification(n_samples=30000, n_features=10, random_state=40)
 
 # Spliting the dataset into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(
@@ -69,7 +69,7 @@ for x in X_test_scaled[:5]:
     print(f"Python output: {output}")
 
 # Exporting 1000 samples of test data to a binary file
-X_export = X_test_scaled[:1000]
+X_export = X_test_scaled[:6000]
 n, nin = X_export.shape
 with open("test_inputs.bin", "wb") as f:
     f.write(struct.pack("I", n))

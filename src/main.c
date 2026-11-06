@@ -120,5 +120,35 @@ int main(void) {
            (double)total_ns / (N_ITERS * n_inputs));
 
     check_ouptuts(expected_outputs, test_outputs, nout * n_outputs);
+
+    // time measured for blas infernece with batch size = 1
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    for (size_t iter = 0; iter < N_ITERS; iter++)
+        for (size_t i = 0; i < n_inputs; i++)
+            infer_blas(mlp, inputs + i * mlp->nin, test_outputs + i * nout);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+
+    total_ns =
+        (t1.tv_sec - t0.tv_sec) * 1000000000L + (t1.tv_nsec - t0.tv_nsec);
+    printf("Total time (blas inference batch_size = 1): %ld ms\n",
+           total_ns / 1000000);
+    printf("Per inference (blas inference batch_size = 1): %.1f ns\n",
+           (double)total_ns / (N_ITERS * n_inputs));
+
+    // time measured for blas inderence with batch size = n_inputs
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    for (size_t inter = 0; inter < N_ITERS; inter++) {
+        infer_blas_batch(mlp, inputs, test_outputs, n_inputs);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+
+    total_ns =
+        (t1.tv_sec - t0.tv_sec) * 1000000000L + (t1.tv_nsec - t0.tv_nsec);
+    printf("Total time (blas inference batch_size = n_inputs): %ld ms\n",
+           total_ns / 1000000);
+    printf("Per inference (blas inference batch_size = n_inputs): %.1f ns\n",
+           (double)total_ns / (N_ITERS * n_inputs));
+
+    check_ouptuts(expected_outputs, test_outputs, nout * n_outputs);
     return 0;
 }

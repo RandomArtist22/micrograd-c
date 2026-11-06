@@ -15,5 +15,8 @@ InferMLP *load_weights(const char *path);
 void infer(InferMLP *mlp, const double *input, double *output);
 void infer_batch(InferMLP *mlp, const double *input, double *output, size_t n);
 double *load_file_to_buffer(const char *path, size_t *n, size_t *ndim);
+void infer_blas(InferMLP *m, const double *input, double *output);
+void infer_blas_batch(InferMLP *m, const double *inputs, double *outputs,
+                      size_t n);
 
 #endif

@@ -1,4 +1,5 @@
 #include "infer.h"
+#include <cblas.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -45,8 +46,11 @@ double *load_file_to_buffer(const char *path, size_t *n, size_t *ndim) {
         perror("Failed to open file");
         exit(1);
     }
-    fread(n, sizeof(uint32_t), 1, fp);
-    fread(ndim, sizeof(uint32_t), 1, fp);
+    uint32_t tmp_n, tmp_ndim;
+    fread(&tmp_n, sizeof(uint32_t), 1, fp);
+    fread(&tmp_ndim, sizeof(uint32_t), 1, fp);
+    *n = (size_t)tmp_n;
+    *ndim = (size_t)tmp_ndim;
 
     double *inputs = (double *)malloc((*n) * (*ndim) * sizeof(double));
     fread(inputs, sizeof(double), (*n) * (*ndim), fp);
@@ -80,4 +84,51 @@ void infer_batch(InferMLP *m, const double *inputs, double *outputs, size_t n) {
     for (size_t i = 0; i < n; i++) {
         infer(m, inputs + i * m->nin, outputs + i * nout);
     }
+}
+
+void infer_blas(InferMLP *m, const double *input, double *output) {
+    double *curr = (double *)malloc(m->nin * sizeof(double));
+    memcpy(curr, input, m->nin * sizeof(double));
+    for (size_t i = 0; i < m->nlayers; i++) {
+        double *next = (double *)malloc(m->nouts[i] * sizeof(double));
+        size_t input_size = (i == 0) ? m->nin : m->nouts[i - 1];
+        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m->nouts[i], 1,
+                    input_size, 1.0, m->w[i], input_size, curr, 1, 0.0, next,
+                    1);
+        for (size_t j = 0; j < m->nouts[i]; j++) {
+            next[j] += m->b[i][j];
+            if (i != m->nlayers - 1)
+                next[j] = (next[j] > 0) ? next[j] : 0;
+        }
+        free(curr);
+        curr = next;
+    }
+    memcpy(output, curr, m->nouts[m->nlayers - 1] * sizeof(double));
+    free(curr);
+}
+
+void infer_blas_batch(InferMLP *m, const double *inputs, double *outputs,
+                      size_t n) {
+    double *curr = (double *)malloc(n * m->nin * sizeof(double));
+    memcpy(curr, inputs, n * m->nin * sizeof(double));
+    for (size_t i = 0; i < m->nlayers; i++) {
+        double *next = (double *)malloc(n * m->nouts[i] * sizeof(double));
+        size_t input_size = (i == 0) ? m->nin : m->nouts[i - 1];
+        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, n, m->nouts[i],
+                    input_size, 1.0, curr, input_size, m->w[i], input_size, 0.0,
+                    next, m->nouts[i]);
+        for (size_t j = 0; j < n; j++) {
+            for (size_t k = 0; k < m->nouts[i]; k++) {
+                next[j * m->nouts[i] + k] += m->b[i][k];
+                if (i != m->nlayers - 1)
+                    next[j * m->nouts[i] + k] = (next[j * m->nouts[i] + k] > 0)
+                                                    ? next[j * m->nouts[i] + k]
+                                                    : 0;
+            }
+        }
+        free(curr);
+        curr = next;
+    }
+    memcpy(outputs, curr, n * m->nouts[m->nlayers - 1] * sizeof(double));
+    free(curr);
 }

@@ -8,9 +8,11 @@ project(
 
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required : false)
+openblas_dep = dependency('openblas', required : true)
 
 dependencies = [
   m_dep,
+  openblas_dep,
 ]
 
 inc = include_directories('include')
