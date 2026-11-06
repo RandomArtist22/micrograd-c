@@ -1,8 +1,13 @@
+#define _POSIX_C_SOURCE 200809L
 #include "engine.h"
 #include "infer.h"
 #include "nn.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define N_ITERS 1000000
 
 void trainModel(void) {
     srand(42);
@@ -84,5 +89,23 @@ int main(void) {
         infer(mlp, input[i], output);
         printf("C output: %.10f\n", output[0]);
     }
+
+    double t_input[10];
+    memcpy(t_input, input[0], sizeof(double) * 10);
+    double output[1];
+
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+
+    for (int i = 0; i < N_ITERS; i++) {
+        infer(mlp, t_input, output);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+
+    long total_ns =
+        (t1.tv_sec - t0.tv_sec) * 1000000000L + (t1.tv_nsec - t0.tv_nsec);
+    printf("Total: %ld ms\n", total_ns / 1000000);
+    printf("Per inference: %.1f ns\n", (double)total_ns / N_ITERS);
     return 0;
 }
