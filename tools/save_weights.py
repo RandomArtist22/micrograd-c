@@ -6,6 +6,22 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score, classification_report
 
+
+def relu(x):
+    return np.maximum(0, x)
+
+
+def forward(coefs, intercepts, x):
+    a = x.copy()
+    for i, (W, b) in enumerate(zip(coefs, intercepts)):
+        z = a @ W + b
+        if i != len(coefs) - 1:
+            a = relu(z)
+        else:
+            a = z
+    return a
+
+
 # Test-data generated at random for simple classification
 X, y = make_classification(n_samples=1000, n_features=10, random_state=40)
 
@@ -43,8 +59,14 @@ nlayers = len(mlp.coefs_)
 
 # Outputting the data to cross check with the inference engine
 print(f"\nnlayers: {nlayers}, nin: {nin}\n")
-print(f"layer 0, neuron 0, weight 0: {mlp.coefs_[0][0][0]}")
-print(f"layer 0, neuron 0, bias: {mlp.intercepts_[0][0]}")
+print(f"layer 0, neuron 0, weight 0: {mlp.coefs_[0][0, 0]}")
+print(f"layer 0, neuron 0, bias: {mlp.intercepts_[0][0]}\n")
+
+# Getting the ouput for a sample input for verification
+print("\nPython raw output for a sample input:")
+for x in X_test_scaled[:5]:
+    output = forward(mlp.coefs_, mlp.intercepts_, x)
+    print(f"Python output: {output}")
 
 # Writing the data to the binary file
 with open("weights.bin", "wb") as f:

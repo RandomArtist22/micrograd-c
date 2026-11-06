@@ -12,5 +12,6 @@ typedef struct {
 } InferMLP;
 
 InferMLP *load_weights(const char *path);
+void infer(InferMLP *mlp, const double *input, double *output);
 
 #endif

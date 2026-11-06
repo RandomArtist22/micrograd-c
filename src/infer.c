@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 InferMLP *load_weights(const char *path) {
     InferMLP *mlp = (InferMLP *)malloc(sizeof(InferMLP));
@@ -36,4 +37,25 @@ InferMLP *load_weights(const char *path) {
     }
     fclose(fp);
     return mlp;
+}
+
+void infer(InferMLP *m, const double *input, double *output) {
+    double *curr = (double *)malloc(m->nin * sizeof(double));
+    memcpy(curr, input, m->nin * sizeof(double));
+    for (size_t i = 0; i < m->nlayers; i++) {
+        double *next = (double *)malloc(m->nouts[i] * sizeof(double));
+        for (size_t j = 0; j < m->nouts[i]; j++) {
+            next[j] = m->b[i][j];
+            size_t input_size = (i == 0) ? m->nin : m->nouts[i - 1];
+            for (size_t k = 0; k < input_size; k++) {
+                next[j] += m->w[i][j][k] * curr[k];
+            }
+            if (i != m->nlayers - 1)
+                next[j] = (next[j] > 0) ? next[j] : 0;
+        }
+        free(curr);
+        curr = next;
+    }
+    memcpy(output, curr, m->nouts[m->nlayers - 1] * sizeof(double));
+    free(curr);
 }
