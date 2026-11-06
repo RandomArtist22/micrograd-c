@@ -39,6 +39,21 @@ InferMLP *load_weights(const char *path) {
     return mlp;
 }
 
+double *load_file_to_buffer(const char *path, size_t *n, size_t *ndim) {
+    FILE *fp = fopen(path, "rb");
+    if (fp == NULL) {
+        perror("Failed to open file");
+        exit(1);
+    }
+    fread(n, sizeof(uint32_t), 1, fp);
+    fread(ndim, sizeof(uint32_t), 1, fp);
+
+    double *inputs = (double *)malloc((*n) * (*ndim) * sizeof(double));
+    fread(inputs, sizeof(double), (*n) * (*ndim), fp);
+
+    return inputs;
+}
+
 void infer(InferMLP *m, const double *input, double *output) {
     double *curr = (double *)malloc(m->nin * sizeof(double));
     memcpy(curr, input, m->nin * sizeof(double));
@@ -58,4 +73,11 @@ void infer(InferMLP *m, const double *input, double *output) {
     }
     memcpy(output, curr, m->nouts[m->nlayers - 1] * sizeof(double));
     free(curr);
+}
+
+void infer_batch(InferMLP *m, const double *inputs, double *outputs, size_t n) {
+    size_t nout = m->nouts[m->nlayers - 1];
+    for (size_t i = 0; i < n; i++) {
+        infer(m, inputs + i * m->nin, outputs + i * nout);
+    }
 }

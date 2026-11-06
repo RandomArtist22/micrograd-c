@@ -23,7 +23,7 @@ def forward(coefs, intercepts, x):
 
 
 # Test-data generated at random for simple classification
-X, y = make_classification(n_samples=1000, n_features=10, random_state=40)
+X, y = make_classification(n_samples=10000, n_features=10, random_state=40)
 
 # Spliting the dataset into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(
@@ -40,7 +40,7 @@ mlp = MLPClassifier(
     hidden_layer_sizes=(64,),  # Using 1 layer with 64 neurons
     activation="relu",
     solver="adam",
-    max_iter=1000,
+    max_iter=10000,
     random_state=40,
 )
 mlp.fit(X_train_scaled, y_train)
@@ -67,6 +67,23 @@ print("\nPython raw output for a sample input:")
 for x in X_test_scaled[:5]:
     output = forward(mlp.coefs_, mlp.intercepts_, x)
     print(f"Python output: {output}")
+
+# Exporting 1000 samples of test data to a binary file
+X_export = X_test_scaled[:1000]
+n, nin = X_export.shape
+with open("test_inputs.bin", "wb") as f:
+    f.write(struct.pack("I", n))
+    f.write(struct.pack("I", nin))
+    for x in X:
+        f.write(struct.pack(f"{nin}d", *x.tolist()))
+
+# Exporting expected outputs for comparison to a binary file
+expected = forward(mlp.coefs_, mlp.intercepts_, X)
+with open("expected_outputs.bin", "wb") as f:
+    f.write(struct.pack("I", n))
+    f.write(struct.pack("I", output_dim))
+    for y in expected:
+        f.write(struct.pack(f"{output_dim}d", *y.tolist()))
 
 # Writing the data to the binary file
 with open("weights.bin", "wb") as f:

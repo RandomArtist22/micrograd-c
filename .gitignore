@@ -3,3 +3,5 @@ build/
 guides/
 .venv/
 weights.bin
+expected_outputs.bin
+test_inputs.bin
