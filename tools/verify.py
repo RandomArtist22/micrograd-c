@@ -20,7 +20,7 @@ def forward(coefs, intercepts, x):
 
 
 # Retrain with identical config so weights match weights.bin
-X, y = make_classification(n_samples=1000, n_features=10, random_state=40)
+X, y = make_classification(n_samples=10000, n_features=10, random_state=40)
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=40
 )
@@ -32,7 +32,7 @@ mlp = MLPClassifier(
     hidden_layer_sizes=(64,),
     activation="relu",
     solver="adam",
-    max_iter=1000,
+    max_iter=10000,
     random_state=40,
 )
 mlp.fit(X_train_scaled, y_train)

@@ -2,6 +2,7 @@
 #include "engine.h"
 #include "infer.h"
 #include "nn.h"
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -63,11 +64,23 @@ void train_model(void) {
     return;
 }
 
+int check_ouptuts(double *expected, double *actual, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        if (fabs(expected[i] - actual[i]) > 1e-8) {
+            printf("Mismatch at index %zu: expected %f, got %f\n", i,
+                   expected[i], actual[i]);
+            return 0;
+        }
+    }
+    printf("Success: All outputs match expected values.\n");
+    return 1;
+}
+
 int main(void) {
     // Loading the weights of the model
     InferMLP *mlp = load_weights("weights.bin");
     printf("nlayers=%zu nin =%zu\n", mlp->nlayers, mlp->nin);
-    printf("layer 0, neuron 0, weight 0 : %f\n", mlp->w[0][0][0]);
+    printf("layer 0, neuron 0, weight 0 : %f\n", mlp->w[0][0]);
     printf("layer 0, neuron 0, bias : %f\n", mlp->b[0][0]);
 
     // benchmarking test_inputs read from a binary file and verifying the
@@ -106,5 +119,6 @@ int main(void) {
     printf("Per inference (batch inference): %.1f ns\n",
            (double)total_ns / (N_ITERS * n_inputs));
 
+    check_ouptuts(expected_outputs, test_outputs, nout * n_outputs);
     return 0;
 }

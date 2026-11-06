@@ -23,15 +23,15 @@ InferMLP *load_weights(const char *path) {
         mlp->nouts[i] = (size_t)temp;
     }
 
-    mlp->w = (double ***)malloc(mlp->nlayers * sizeof(double **));
+    mlp->w = (double **)malloc(mlp->nlayers * sizeof(double *));
     mlp->b = (double **)malloc(mlp->nlayers * sizeof(double *));
     for (size_t i = 0; i < mlp->nlayers; i++) {
-        mlp->b[i] = (double *)malloc(mlp->nouts[i] * sizeof(double *));
-        mlp->w[i] = (double **)malloc(mlp->nouts[i] * sizeof(double *));
+        size_t input_size = (i == 0) ? mlp->nin : mlp->nouts[i - 1];
+        mlp->b[i] = (double *)malloc(mlp->nouts[i] * sizeof(double));
+        mlp->w[i] =
+            (double *)malloc(mlp->nouts[i] * input_size * sizeof(double));
         for (size_t j = 0; j < mlp->nouts[i]; j++) {
-            size_t input_size = (i == 0) ? mlp->nin : mlp->nouts[i - 1];
-            mlp->w[i][j] = (double *)malloc(input_size * sizeof(double));
-            fread(mlp->w[i][j], sizeof(double), input_size, fp);
+            fread(mlp->w[i] + j * input_size, sizeof(double), input_size, fp);
             fread(&mlp->b[i][j], sizeof(double), 1, fp);
         }
     }
@@ -63,7 +63,7 @@ void infer(InferMLP *m, const double *input, double *output) {
             next[j] = m->b[i][j];
             size_t input_size = (i == 0) ? m->nin : m->nouts[i - 1];
             for (size_t k = 0; k < input_size; k++) {
-                next[j] += m->w[i][j][k] * curr[k];
+                next[j] += m->w[i][j * input_size + k] * curr[k];
             }
             if (i != m->nlayers - 1)
                 next[j] = (next[j] > 0) ? next[j] : 0;

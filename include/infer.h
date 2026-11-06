@@ -7,8 +7,8 @@ typedef struct {
     size_t nlayers;
     size_t nin; // array of length nlayers
     size_t *nouts;
-    double ***w; // w[layer][neuron][input]
-    double **b;  // b[layer][neuron]
+    double **w; // w[layer] is a flat array of nouts[l] * input_width doubles
+    double **b; // b[layer] is a flat array of nouts[l] doubles
 } InferMLP;
 
 InferMLP *load_weights(const char *path);
