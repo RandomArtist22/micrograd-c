@@ -41,19 +41,21 @@ for each layer, each neuron:
 
 ### Performance
 
-Benchmarked on a 2-layer MLP (10 inputs → 64 hidden → 1 output), 1M
-iterations, `-O3`, on an x86-64 Linux machine:
+Benchmarked on a 2-layer MLP (10 inputs → 64 hidden → 1 output), 1K
+iterations, `-O3`, x86-64 Linux, n=6000:
 
 | Implementation | ns / inference | relative |
 |---|---|---|
-| This C engine | **466 ns** | 1× |
-| numpy manual forward pass | 5,775 ns | 12× slower |
-| sklearn `predict` | 145,116 ns | 311× slower |
+| BLAS batch (`cblas_dgemm`) | **111 ns** | 1× |
+| Scalar loop (single) | 295 ns | 2.6× slower |
+| BLAS single | 507 ns | 4.6× slower |
+| numpy manual forward pass | 5,775 ns | 52× slower |
+| sklearn `predict` | 145,116 ns | 1307× slower |
 
-The 12× gap over a raw numpy forward pass comes from Python and allocation
-overhead that dominates at batch size 1. At large batch sizes, numpy's
-BLAS-backed matrix multiply would pull ahead — which is the motivation for
-extending this to batch inference with an explicit matrix multiply.
+BLAS batch wins at large n because a single `cblas_dgemm` call processes
+the entire batch as one matrix multiply, letting OpenBLAS use AVX vectorization
+across all inputs at once. BLAS single is slower than the scalar loop — the
+OpenBLAS dispatch overhead isn't worth it for a 64×1 multiply.
 
 ### Running the inference benchmark
 
@@ -70,10 +72,13 @@ python tools/verify.py
 
 ## Building
 
-Prerequisites: a C11 compiler, [Meson](https://mesonbuild.com/) and [Ninja](https://ninja-build.org/).
+Prerequisites: a C11 compiler, [Meson](https://mesonbuild.com/), [Ninja](https://ninja-build.org/), and OpenBLAS.
 
 ```bash
-meson setup build --buildtype=release
+# Arch
+sudo pacman -S openblas
+
+PKG_CONFIG_PATH=/usr/lib/pkgconfig meson setup build --buildtype=release
 ninja -C build
 ./build/micrograd
 ```
